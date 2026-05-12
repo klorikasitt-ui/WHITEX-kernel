@@ -8,8 +8,13 @@
 #include "uname.h"
 #include "reboot.h"
 #include "echo.h"
+#include "fs.h"
+#include "shutdown.h"
+#include "hexdump.h"
 void Kernel() {
 init(); 
+init_fs();
+
 char input[256];
 logo();
 print("\n");
@@ -48,6 +53,38 @@ echo(input);
 else if (strcmp(input," ") == 0)
 {
 
+}
+else if (strcmp(input, "shutdown") == 0)
+{
+shutdown();
+}
+else if (strcmp(input, "ls") == 0)
+{
+ls();
+}
+else if (strcmp(input, "mkdir") == 0)
+{
+mkdir();
+}
+else if (strcmp(input, "ls") ==0)
+{
+ls();
+}
+else if (strcmp(input, "cd") == 0)
+{
+cd();
+}
+else if (strcmp(input, "pwd") == 0)
+{
+pwd();
+}
+else if (strcmp(input, "hexdump") == 0)
+{
+hexdump();
+}
+else if (strcmp(input, "initfs") == 0)
+{
+init_fs();
 }
 else {
             print("Unknown command: ");
