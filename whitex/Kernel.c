@@ -11,9 +11,15 @@
 #include "fs.h"
 #include "shutdown.h"
 #include "hexdump.h"
+#include "cpuid.h"
+#include "notepad.h"
+#include "Kisskrnl.h"
+#include "clock.h"
+#include "internet.h"
 void Kernel() {
 init(); 
 init_fs();
+pit_init();
 
 char input[256];
 logo();
@@ -86,6 +92,27 @@ else if (strcmp(input, "initfs") == 0)
 {
 init_fs();
 }
+else if (strcmp(input, "cpuid") == 0)
+{
+cpuid();
+}
+else if (strcmp(input, "notepad") == 0)
+{
+notepad();
+}
+else if (strcmp(input, "kiskrnl") == 0)
+{
+ant();
+}
+else if (strcmp(input, "time") == 0)
+{
+clockmain();
+}
+else if (strcmp(input, "internet") == 0)
+{
+internetmain();
+}
+
 else {
             print("Unknown command: ");
             print(input);
