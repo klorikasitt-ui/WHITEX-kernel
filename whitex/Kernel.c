@@ -16,10 +16,18 @@
 #include "Kisskrnl.h"
 #include "clock.h"
 #include "internet.h"
+#include "fault.h"
+#include "malloc.h"
+#include "sdd.h"
+#include "fssdd.h"
+#include "htop.h"
+#include "multitasking.h"
 void Kernel() {
 init(); 
 init_fs();
 pit_init();
+ram();
+Sdd(); 
 
 char input[256];
 logo();
@@ -72,10 +80,6 @@ else if (strcmp(input, "mkdir") == 0)
 {
 mkdir();
 }
-else if (strcmp(input, "ls") ==0)
-{
-ls();
-}
 else if (strcmp(input, "cd") == 0)
 {
 cd();
@@ -111,6 +115,22 @@ clockmain();
 else if (strcmp(input, "internet") == 0)
 {
 internetmain();
+} 
+else if (strcmp(input, "sddshell") == 0)
+{
+shellfs();
+}
+else if (strcmp(input, "ram") == 0)
+{
+ram();
+}
+else if (strcmp(input, "htop") == 0)
+{
+htop();
+}
+else if (strcmp(input, "mtask") == 0)
+{
+start_triple_tasking();
 }
 
 else {
