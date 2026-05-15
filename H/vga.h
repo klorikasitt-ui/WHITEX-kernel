@@ -17,8 +17,8 @@ enum vga_color {
    RED = 4,
    MAGENTA = 5,
    BROWN = 6,
-   GREY = 7,
-   WHITE = 8,
+   GREY = 8,
+   WHITE = 15,
 };
 
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
@@ -52,7 +52,8 @@ void putchar(char c) {
         terminal_row++;
     } else {
         const size_t index = terminal_row * VGA_WIDTH + terminal_column;
-        VGA_BUFFER[index] = vga_entry(c, terminal_color);
+        uint8_t highlight_color = vga_entry_color(WHITE, BLUE);
+        VGA_BUFFER[index] = vga_entry(c, highlight_color);
         
         if (++terminal_column == VGA_WIDTH) {
             terminal_column = 0;
