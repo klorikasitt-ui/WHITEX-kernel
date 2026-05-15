@@ -15,7 +15,7 @@ static uint8_t current_task = 0;
 static uint32_t task_stacks[3][1024];
 
 extern void e1000_poll(uint32_t base);
-extern void clockmain();
+extern void time();
 extern void ram_print_number(size_t n);
 
 void task_yield() {
@@ -42,7 +42,7 @@ void task_net_worker() {
 
 void task_clock_worker() {
     while(1) {
-        clockmain();
+        time();
         task_yield();
     }
 }

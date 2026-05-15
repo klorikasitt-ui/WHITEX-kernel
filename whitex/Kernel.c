@@ -19,6 +19,7 @@
 #include "fault.h"
 #include "malloc.h"
 #include "sdd.h"
+#include "clk.h"
 #include "fssdd.h"
 #include "htop.h"
 #include "multitasking.h"
@@ -110,7 +111,7 @@ ant();
 }
 else if (strcmp(input, "time") == 0)
 {
-clockmain();
+time();
 }
 else if (strcmp(input, "internet") == 0)
 {

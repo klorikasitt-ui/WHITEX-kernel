@@ -1,60 +1,48 @@
 
-#define PIT_FREQ 1193182
-#define TARGET_FREQ 100
-#define PIT_COMMAND 0x43
-#define PIT_DATA0 0x40
+#define CMOS_ADDR 0x70
+#define CMOS_DATA 0x71
 
-volatile unsigned int ticks = 0;
-int seconds = 0, minutes = 0, hours = 12;
-
-void itoa(int n, char* s) {
-    s[0] = (n / 10) + '0';
-    s[1] = (n % 10) + '0';
-    s[2] = '\0';
+uint8_t get_rtc_reg(int reg) {
+    outb(CMOS_ADDR, reg);
+    return inb(CMOS_DATA);
 }
 
-void pit_init() {
-    unsigned int divisor = PIT_FREQ / TARGET_FREQ;
-    outb(PIT_COMMAND, 0x36);
-    outb(PIT_DATA0, (unsigned char)(divisor & 0xFF));
-    outb(PIT_DATA0, (unsigned char)((divisor >> 8) & 0xFF));
+uint8_t bcd_to_bin(uint8_t val) {
+    return (val & 0x0F) + ((val / 16) * 10);
 }
 
-void timer_handler() {
-    ticks++;
-    if (ticks % 100 == 0) {
-        seconds++;
-        if (seconds >= 60) {
-            seconds = 0;
-            minutes++;
-            if (minutes >= 60) {
-                minutes = 0;
-                hours++;
-                if (hours >= 24) hours = 0;
+void time() {
+    uint8_t s, m, h;
+    unsigned short* vga = (unsigned short*)0xB8000;
+    char t[8];
+
+    while (1) {
+        outb(CMOS_ADDR, 0x0A);
+        if (!(inb(CMOS_DATA) & 0x80)) {
+            s = bcd_to_bin(get_rtc_reg(0x00));
+            m = bcd_to_bin(get_rtc_reg(0x02));
+            h = bcd_to_bin(get_rtc_reg(0x04));
+
+            t[0] = (h / 10) + '0';
+            t[1] = (h % 10) + '0';
+            t[2] = ':';
+            t[3] = (m / 10) + '0';
+            t[4] = (m % 10) + '0';
+            t[5] = ':';
+            t[6] = (s / 10) + '0';
+            t[7] = (s % 10) + '0';
+
+            for (int i = 0; i < 8; i++) {
+                vga[72 + i] = (unsigned short)t[i] | (0x0E << 8);
             }
         }
 
-        char h_str[3], m_str[3], s_str[3];
-        itoa(hours, h_str);
-        itoa(minutes, m_str);
-        itoa(seconds, s_str);
-        cls();
+        if (inb(0x64) & 0x01) {
+            if (inb(0x60) == 0x10) {
+                break;
+            }
+        }
 
-        print("\rWorld Clock: ");
-        print(h_str);
-        print(":");
-        print(m_str);
-        print(":");
-        print(s_str);
+        for (volatile int i = 0; i < 1000000; i++);
     }
 }
-
-void clockmain() {
-    pit_init();
-
-    while (1) {
-        timer_handler();
-        for(volatile int i = 0; i < 1000000; i++); 
-    }
-}
-  
