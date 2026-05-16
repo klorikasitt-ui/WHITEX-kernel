@@ -23,125 +23,112 @@
 #include "fssdd.h"
 #include "htop.h"
 #include "multitasking.h"
+#include "melodi.h"
+#include "idt.h"
+#include "gdt.h"
+
 void Kernel() {
-init(); 
-init_fs();
-pit_init();
-ram();
-Sdd(); 
+    init(); 
+    init_gdt();
+    init_idt();
+    init_fs();
+    pit_init();
+    ram();
+    Sdd(); 
+    melodi();
 
-char input[256];
-logo();
-print("\n");
-print(" Welcome to WhiteX\n");
-print(" You can learn the commands by typing `help`. \n");
+    char input[256];
+    logo();
+    print("\n");
+    print(" Welcome to WhiteX\n");
+    print(" You can learn the commands by typing `help`. \n");
 
+    
 
-while(1) {
-print("whitex$ \n");
-scan(input);
-if (strcmp(input, "help") == 0) 
-{
-help();
-}
-else if (strcmp(input, "logo") == 0)
-{
-logo();
-}
-else if (strcmp(input, "cls") == 0)
-{
-cls();
-}
-else if (strcmp(input, "uname") == 0)
-{
-uname();
-}
-else if (strcmp(input, "reboot") == 0)
-{
-reboot();
-}
-else if (strcmp(input, "echo") == 0)
-{
-echo(input); 
-}
+    while(1) {
+    __asm__ volatile("cli");
+        print("whitex$ \n");
+        scan(input);
 
-else if (strcmp(input," ") == 0)
-{
-
-}
-else if (strcmp(input, "shutdown") == 0)
-{
-shutdown();
-}
-else if (strcmp(input, "ls") == 0)
-{
-ls();
-}
-else if (strcmp(input, "mkdir") == 0)
-{
-mkdir();
-}
-else if (strcmp(input, "cd") == 0)
-{
-cd();
-}
-else if (strcmp(input, "pwd") == 0)
-{
-pwd();
-}
-else if (strcmp(input, "hexdump") == 0)
-{
-hexdump();
-}
-else if (strcmp(input, "initfs") == 0)
-{
-init_fs();
-}
-else if (strcmp(input, "cpuid") == 0)
-{
-cpuid();
-}
-else if (strcmp(input, "notepad") == 0)
-{
-notepad();
-}
-else if (strcmp(input, "kiskrnl") == 0)
-{
-ant();
-}
-else if (strcmp(input, "time") == 0)
-{
-time();
-}
-else if (strcmp(input, "internet") == 0)
-{
-internetmain();
-} 
-else if (strcmp(input, "sddshell") == 0)
-{
-shellfs();
-}
-else if (strcmp(input, "ram") == 0)
-{
-ram();
-}
-else if (strcmp(input, "htop") == 0)
-{
-htop();
-}
-else if (strcmp(input, "mtask") == 0)
-{
-start_triple_tasking();
-}
-
-else {
+        if (strcmp(input, "help") == 0) {
+            help();
+        }
+        else if (strcmp(input, "logo") == 0) {
+            logo();
+        }
+        else if (strcmp(input, "cls") == 0) {
+            cls();
+        }
+        else if (strcmp(input, "uname") == 0) {
+            uname();
+        }
+        else if (strcmp(input, "reboot") == 0) {
+            reboot();
+        }
+        else if (strcmp(input, "echo") == 0) {
+            echo(input); 
+        }
+        else if (strcmp(input, "shutdown") == 0) {
+            shutdown();
+        }
+        else if (strcmp(input, "ls") == 0) {
+            ls();
+        }
+        else if (strcmp(input, "mkdir") == 0) {
+            mkdir();
+        }
+        else if (strcmp(input, "cd") == 0) {
+            cd();
+        }
+        else if (strcmp(input, "pwd") == 0) {
+            pwd();
+        }
+        else if (strcmp(input, "hexdump") == 0) {
+            hexdump();
+        }
+        else if (strcmp(input, "initfs") == 0) {
+            init_fs();
+        }
+        else if (strcmp(input, "cpuid") == 0) {
+            cpuid();
+        }
+        else if (strcmp(input, "notepad") == 0) {
+            notepad();
+        }
+        else if (strcmp(input, "kiskrnl") == 0) {
+            ant();
+        }
+        else if (strcmp(input, "time") == 0) {
+            time();
+        }
+        else if (strcmp(input, "internet") == 0) {
+            internetmain();
+        } 
+        else if (strcmp(input, "sddshell") == 0) {
+            shellfs();
+        }
+        else if (strcmp(input, "ram") == 0) {
+            ram();
+        }
+        else if (strcmp(input, "htop") == 0) {
+            htop();
+        }
+        else if (strcmp(input, "mtask") == 0) {
+            start_triple_tasking();
+        }
+        else if (strcmp(input, "song") == 0) {
+            melodi();
+        }
+        else if (strcmp(input, " ") == 0) {
+        }
+        else {
             print("Unknown command: ");
             print(input);
             print("\n");
         }
-}
+    }
 
-while(1) {
-__asm__ __volatile__("hlt" : : : "memory");
-}
+    while(1) {
+        __asm__ __volatile__("hlt" : : : "memory");
+    }
 }
