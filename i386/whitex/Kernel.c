@@ -42,6 +42,7 @@
 #include "syscall.h"
 #include "vm.h"
 #include "esysc.h"
+#include "login.h"
 
 #define I386_CORE_MAGIC 0xC0DEBABE
 #define I386_STACK_GUARD 0xDEADBEEF
@@ -94,9 +95,11 @@ static void safe_memzero_32(void *dest, size_t count) {
 }
 
 static void panic_handler_i386(const char *error_code) {
-    __asm__ volatile("cli");
+     cls();
+     __asm__ volatile("cli");
+    notgud();
     global_env.fault_detected = 1;
-    print("\n[i386 CRITICAL FAULT] SYSTEM HALTED.\n");
+    print("\n[CRITICAL FAULT] SYSTEM HALTED.\n");
     print("CODE: ");
     print((char*)error_code);
     print("\n");
@@ -104,6 +107,7 @@ static void panic_handler_i386(const char *error_code) {
         __asm__ volatile("hlt");
     }
 }
+
 
 static void verify_environment_integrity_i386(void) {
     if (global_env.memory_guard != I386_STACK_GUARD) {
@@ -160,7 +164,8 @@ static const i386_dispatch_entry_t kernel_dispatch_table[] = {
     {"htop", htop, 0, 0},
     {"song", melodi, 0, 0},
     {"vm", safe_vm_init_i386, 0, 0},
-    {"echo", 0, cmd_echo_handler_i386, 1}
+    {"echo", 0, cmd_echo_handler_i386, 1},
+   // {"ui", graphic, 0, 0}
 };
 
 #define DISPATCH_TABLE_SIZE (sizeof(kernel_dispatch_table) / sizeof(i386_dispatch_entry_t))
@@ -174,6 +179,7 @@ static void sanitize_string_i386(char *str, size_t max_len) {
         }
     }
 }
+
 
 static void execute_command_vector_i386(const char *cmd_name, char *args) {
     if (!cmd_name || cmd_name[0] == '\0') return;
@@ -195,7 +201,7 @@ static void execute_command_vector_i386(const char *cmd_name, char *args) {
         }
     }
 
-    print("WHITEX_CORE: Unknown vector -> ");
+    print(" Unknown command-> ");
     print((char*)cmd_name);
     print("\n");
 }
@@ -235,17 +241,22 @@ void Kernel(void) {
     init();
     init_gdt();
     init_idt();
+    
     init_fs();
     pit_init();
     ram();
     Sdd();
     melodi();
     cpuid();
+  login();
+   
+    
 
     char io_buffer[I386_MAX_BUFFER];
     logo();
     print("Type 'help' for available system routines.\n");
 
+  
     while(global_env.system_state == 1) {
         verify_environment_integrity_i386();
         
@@ -285,7 +296,9 @@ void execute_syscall(VMState *vm, uint64_t syscall_id) {
             global_env.execution_cycles++;
             break;
         default:
-            print("WHITEX_CORE: Invalid i386 system call.\n");
+            print(" Invalid i386 system call.\n");
             break;
     }
 }
+
+

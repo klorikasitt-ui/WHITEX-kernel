@@ -46,6 +46,8 @@ void time() {
 
             for (int i = 0; i < 8; i++) {
                 vga[72 + i] = (unsigned short)t[i] | (0x0E << 8);
+
+
             }
         }
 

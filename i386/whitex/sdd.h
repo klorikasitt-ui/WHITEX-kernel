@@ -143,6 +143,7 @@ void fsshell() {
         else if (strcmp(cmd, "rm") == 0) whitex_rm();
         else if (strcmp(cmd, "sync") == 0) fs_sync();
         else if (strcmp(cmd, "help") == 0) print("ls, mkdir, cd, pwd, touch, rm, sync\n");
+        else if (strcmp(cmd, "q") == 0) break;
         else print("Error: Cmd not found.\n");
     }
 }

@@ -67,7 +67,7 @@ void shellfs() {
         else if (strcmp(cmd, "touch") == 0) touch();
         else if (strcmp(cmd, "rm") == 0) rm();
         else if (strcmp(cmd, "sync") == 0) Sdd_Sync();
-        else if (strcmp(cmd, "exit") == 0) break;
+        else if (strcmp(cmd, "q") == 0) break;
         else print("Unknown command.\n");
     }
 }
