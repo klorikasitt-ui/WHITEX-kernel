@@ -30,4 +30,10 @@ The following commands are available in the system shell (whitex~$):
 | echo | Reflects text output to the screen. |
 ## License
 This program is free software distributed under the terms of the **GNU General Public License (GPL) version 3** (or any later version) as published by the Free Software Foundation.
+
+User: nousr
+
+
+Password: root
+
 *Note: Developed by Burak Yakub GÜÇER.*
