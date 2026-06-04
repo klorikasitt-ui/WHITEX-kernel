@@ -1,5 +1,6 @@
 #COMPILE.SH
 #Run it inside the i386/whitex folder.
+#Place the boot.asm file in the whitex folder; otherwise, it will not work. 
 #First, enter this.
 clang --target=i686-elf -m32 -ffreestanding  -c *.c -o kernel.o -Wall
 nasm -f elf32 boot.asm -o boot.o
