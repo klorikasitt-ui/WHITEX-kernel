@@ -11,8 +11,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+
 #ifndef SDD_H
 #define SDD_H
+
 static inline uint16_t inw(uint16_t port) {
     uint16_t ret;
     __asm__ volatile ("inw %1, %0" : "=a"(ret) : "Nd"(port));
@@ -21,7 +23,6 @@ static inline uint16_t inw(uint16_t port) {
 
 static inline void outw(uint16_t port, uint16_t val) {
     __asm__ volatile ("outw %0, %1" : : "a"(val), "Nd"(port));
-
 }
 
 void quit() {
@@ -44,6 +45,7 @@ typedef struct {
 
 static storage_device_t primary_dev = {DEV_NONE, 0, 0};
 
+// Hata kontrollü ATA Okuma
 int ata_read_sectors(uint64_t lba, uint32_t count, void* buffer) {
     uint16_t* buf = (uint16_t*)buffer;
     for(uint32_t i = 0; i < count; i++) {
@@ -53,13 +55,20 @@ int ata_read_sectors(uint64_t lba, uint32_t count, void* buffer) {
         outb(0x1F4, (uint8_t)(lba >> 8));
         outb(0x1F5, (uint8_t)(lba >> 16));
         outb(0x1F7, 0x20); 
-        while (!(inb(ATA_STATUS) & 0x08));
+        
+        int timeout = 0;
+        while (!(inb(ATA_STATUS) & 0x08)) {
+            timeout++;
+            if (timeout > 1000000) return -1;
+        }
+        
         for (int j = 0; j < 256; j++) buf[j + (i * 256)] = inw(ATA_DATA);
         lba++;
     }
     return 0;
 }
 
+// Hata kontrollü ATA Yazma
 int ata_write_sectors(uint64_t lba, uint32_t count, void* buffer) {
     uint16_t* buf = (uint16_t*)buffer;
     for(uint32_t i = 0; i < count; i++) {
@@ -69,12 +78,19 @@ int ata_write_sectors(uint64_t lba, uint32_t count, void* buffer) {
         outb(0x1F4, (uint8_t)(lba >> 8));
         outb(0x1F5, (uint8_t)(lba >> 16));
         outb(0x1F7, 0x30); 
-        while (!(inb(ATA_STATUS) & 0x08));
+        
+        int timeout = 0;
+        while (!(inb(ATA_STATUS) & 0x08)) {
+            timeout++;
+            if (timeout > 1000000) return -1;
+        }
+
         for (int j = 0; j < 256; j++) outw(ATA_DATA, buf[j + (i * 256)]);
         lba++;
     }
     return 0;
 }
+
 int read_block(uint64_t block_id, void* buffer) {
     if (primary_dev.read) return primary_dev.read(block_id, 1, buffer);
     return -1;
@@ -94,6 +110,7 @@ void Sdd() {
         print("ATA Ready.\n");
     }
 }
+
 void fs_sync() {
     int sectors = (sizeof(storage) / 512) + 1;
     for (int i = 0; i < sectors; i++) {
@@ -142,7 +159,9 @@ void fsshell() {
         else if (strcmp(cmd, "touch") == 0) whitex_touch();
         else if (strcmp(cmd, "rm") == 0) whitex_rm();
         else if (strcmp(cmd, "sync") == 0) fs_sync();
-        else if (strcmp(cmd, "help") == 0) print("ls, mkdir, cd, pwd, touch, rm, sync\n");
+        else if (strcmp(cmd, "help") == 0)  {
+            print("ls, mkdir, cd, pwd, touch, rm, sync\n");
+        }
         else if (strcmp(cmd, "q") == 0) break;
         else print("Error: Cmd not found.\n");
     }

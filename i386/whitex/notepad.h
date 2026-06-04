@@ -26,7 +26,6 @@ int str_compare(char* s1, char* s2) {
 }
 
 void refresh_screen() {
-    print("\033[2J\033[H"); 
     print("WhiteX Notepad v1.0\n");
     print("------------------------------------------\n");
     for (int i = 0; i < line_count; i++) {
@@ -53,22 +52,22 @@ void notepad() {
     while (1) {
         scan(input);
 
-        if (str_compare(input, ":q") == 0) {
+        if (str_compare(input, "/q") == 0) {
             break;
         } 
-        else if (str_compare(input, ":v") == 0) {
+        else if (str_compare(input, "/v") == 0) {
             refresh_screen();
         }
-        else if (str_compare(input, ":ls") == 0) {
+        else if (str_compare(input, "/ls") == 0) {
             ls();
         }
-        else if (str_compare(input, ":pwd") == 0) {
+        else if (str_compare(input, "/pwd") == 0) {
             pwd();
         }
-        else if (str_compare(input, ":mkdir") == 0) {
+        else if (str_compare(input, "/mkdir") == 0) {
             mkdir();
         }
-        else if (str_compare(input, ":cd") == 0) {
+        else if (str_compare(input, "/cd") == 0) {
             cd();
         }
         else {

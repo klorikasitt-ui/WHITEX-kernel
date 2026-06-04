@@ -1,3 +1,10 @@
+void haltsystem() {
+    __asm__ __volatile__ ("cli");
+    while (1) {
+        __asm__ __volatile__ ("hlt"); 
+    }
+}
+
 void scan_password(char* buffer) {
     buffer_idx = 0;
     input_complete = 0;
@@ -81,4 +88,5 @@ void login() {
     }
 
     print("\n[!!!] ACCESS DENIED. TRY AGAIN .\n");
+haltsystem();
 }

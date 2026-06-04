@@ -1,5 +1,5 @@
 /*
- * WhiteX - i386 (32-bit) Stable Release
+ * WhiteX - i386 
  * DEVELOPER BURAK YAKUB GÜÇER
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 #include "sdd.h"
 #include "clk.h"
 #include "fssdd.h"
-#include "htop.h"
+//#include "htop.h"
 #include "melodi.h"
 #include "idt.h"
 #include "gdt.h"
@@ -43,12 +43,23 @@
 #include "vm.h"
 #include "esysc.h"
 #include "login.h"
+#include "oomk.h"
+#include "errnu.h"
+#include "multitasking.h"
+#include "sys_tools.h"
+#include "pkg.h"
+#include "calc.h"
+#include "htop.h"
+#include "tasks.h"
+uint64_t tick_counter = 0;
+#define THIRTY_SECONDS_TICKS 3000 // Eğer döngün 10ms'de bir dönüyorsa 30s = 3000 tick
 
 #define I386_CORE_MAGIC 0xC0DEBABE
 #define I386_STACK_GUARD 0xDEADBEEF
 #define I386_MAX_BUFFER 256
 #define I386_CMD_MAX 64
 #define I386_ARG_MAX 190
+
 
 #pragma pack(push, 1)
 typedef struct {
@@ -101,6 +112,7 @@ static void panic_handler_i386(const char *error_code) {
     global_env.fault_detected = 1;
     print("\n[CRITICAL FAULT] SYSTEM HALTED.\n");
     print("CODE: ");
+    hexdump();
     print((char*)error_code);
     print("\n");
     while (1) {
@@ -165,7 +177,16 @@ static const i386_dispatch_entry_t kernel_dispatch_table[] = {
     {"song", melodi, 0, 0},
     {"vm", safe_vm_init_i386, 0, 0},
     {"echo", 0, cmd_echo_handler_i386, 1},
-   // {"ui", graphic, 0, 0}
+    {"ntask", new_task, 0, 0},
+    {"ps", ps, 0, 0},
+    {"top", cmd_top, 0, 0},
+    {"kill", 0, cmd_kill, 1},
+    {"msgsend", 0, cmd_msgsend, 1},
+    {"msgrecv", cmd_msgrecv, 0, 0},
+    {"pkg", 0, wx_pkg_cli_handler, 1},
+    {"calc", 0, cmd_calc_handler, 1},
+    {"telemetry", cmd_lifecycle_telemetry, 0, 0},
+    {"lcreset", 0, cmd_lifecycle_reset, 1}
 };
 
 #define DISPATCH_TABLE_SIZE (sizeof(kernel_dispatch_table) / sizeof(i386_dispatch_entry_t))
@@ -237,29 +258,33 @@ static void parse_input_buffer_i386(char *raw_buffer) {
 
 void Kernel(void) {
     i386_env_bootstrap();
-
     init();
     init_gdt();
     init_idt();
-    
     init_fs();
     pit_init();
     ram();
     Sdd();
     melodi();
     cpuid();
-  login();
-   
-    
-
+    cls();
+    login();
+    scheduler_initialize();
+    new_task();
+    wx_pkg_system_bootstrap();
     char io_buffer[I386_MAX_BUFFER];
     logo();
+    print(" Welcome to WhiteX 0.0.5\n");
     print("Type 'help' for available system routines.\n");
 
   
     while(global_env.system_state == 1) {
+tick_counter++;
+        if (tick_counter >= THIRTY_SECONDS_TICKS) {
+            sys_oom_monitor_check();
+            tick_counter = 0;    
         verify_environment_integrity_i386();
-        
+        }
         safe_memzero_32(io_buffer, I386_MAX_BUFFER);
         
         print("\nwhitex~$ ");
