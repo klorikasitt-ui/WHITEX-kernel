@@ -1,6 +1,8 @@
 #COMPILE.SH
+#Run it inside the i386/whitex folder.
 #First, enter this.
 clang --target=i686-elf -m32 -ffreestanding  -c *.c -o kernel.o -Wall
+nasm -f elf32 boot.asm -o boot.o
 #Write this from now on
 ld -m elf_i386 -T linker.ld -o kernelll boot.o kernel.o
 #Write this to test
