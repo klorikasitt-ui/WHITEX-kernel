@@ -1,5 +1,6 @@
 
 extern void terminal_backspace();
+extern void scheduler_yield(void);
 extern void putchar(char c);
 
 static int shift_pressed = 0;
@@ -99,7 +100,8 @@ void scan(char* buffer) {
         input_buffer[i] = 0;
     }
 
-    while (!input_complete) {
+        while (!input_complete) {
+        scheduler_yield();
         if (inb(0x64) & 0x01) {
             keyboard_handler();
         }
