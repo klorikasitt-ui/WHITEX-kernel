@@ -1,5 +1,36 @@
 #ifndef SYS_TOOLS_H
 #define SYS_TOOLS_H
+void* memset(void* dest, int val, uint32_t count) {
+    unsigned char* ptr = (unsigned char*)dest;
+    while (count--) {
+        *ptr++ = (unsigned char)val;
+    }
+    return dest;
+}
+
+void print_int(uint32_t n) {
+    if (n == 0) {
+        print("0");
+        return;
+    }
+    
+    char buf[12];
+    int i = 0;
+    
+  
+    while (n > 0) {
+        buf[i++] = (n % 10) + '0';
+        n /= 10;
+    }
+    
+  
+    char str[2] = {0, 0};
+    while (--i >= 0) {
+        str[0] = buf[i];
+        print(str);
+    }
+}
+
 
 typedef struct {
     uint32_t state;
@@ -169,5 +200,35 @@ void cmd_msgrecv(void) {
         print("Error: Message could not be received.\n");
     }
 }
+void bot() {
+    print("stress test\n");
+    
+    uint32_t start_time = ticks; 
+    uint32_t msg_count = 0;
+    uint32_t err_count = 0;
+    
+    char hex_buf[11];
+
+    while ((ticks - start_time) < 3000) {
+        uint32_t target_pid = (ticks % 20) + 1;
+        
+        if (scheduler_ipc_send(target_pid, "STRESS", 7, 1) != 0) {
+            err_count++;
+        }
+        
+        msg_count++;
+        scheduler_yield();
+    }
+    
+    print("Test ok!\n");
+    print("Total msg: ");
+    print_int(msg_count);
+    
+    print("\nError (Hex): ");
+    to_hex(err_count, hex_buf); 
+    print(hex_buf);
+    print("\n");
+}
+
 
 #endif

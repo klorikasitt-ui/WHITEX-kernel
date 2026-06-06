@@ -23,7 +23,7 @@ struct gdt_entry_struct {
     uint8_t  access;
     uint8_t  granularity;
     uint8_t  base_high;
-} __attribute__((packed));
+} __attribute__((packed, aligned(8)));
 
 struct gdt_ptr_struct {
     uint16_t limit;
@@ -33,7 +33,7 @@ struct gdt_ptr_struct {
 typedef struct gdt_entry_struct gdt_entry_t;
 typedef struct gdt_ptr_struct gdt_ptr_t;
 
-gdt_entry_t gdt[3];
+gdt_entry_t gdt[3] __attribute__((aligned(8)));
 gdt_ptr_t   gdt_ptr;
 
 void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
@@ -69,3 +69,4 @@ void init_gdt() {
 }
 
 #endif
+

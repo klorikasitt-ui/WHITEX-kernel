@@ -51,6 +51,7 @@
 #include "calc.h"
 #include "htop.h"
 #include "tasks.h"
+#include "text.h"
 uint64_t tick_counter = 0;
 #define THIRTY_SECONDS_TICKS 3000 // Eğer döngün 10ms'de bir dönüyorsa 30s = 3000 tick
 
@@ -95,8 +96,8 @@ typedef struct {
 } i386_system_environment_t;
 
 static i386_system_environment_t global_env;
-static VMState kernel_vm;
-static uint8_t vm_ram[0x10000];
+//static VMState kernel_vm;
+//static uint8_t vm_ram[0x10000];
 
 static void safe_memzero_32(void *dest, size_t count) {
     volatile uint8_t *ptr = (volatile uint8_t *)dest;
@@ -186,7 +187,9 @@ static const i386_dispatch_entry_t kernel_dispatch_table[] = {
     {"pkg", 0, wx_pkg_cli_handler, 1},
     {"calc", 0, cmd_calc_handler, 1},
     {"telemetry", cmd_lifecycle_telemetry, 0, 0},
-    {"lcreset", 0, cmd_lifecycle_reset, 1}
+    {"lcreset", 0, cmd_lifecycle_reset, 1},
+    {"test", 0, bot, 1},
+    {"gusioc", 0, gusioc, 0}
 };
 
 #define DISPATCH_TABLE_SIZE (sizeof(kernel_dispatch_table) / sizeof(i386_dispatch_entry_t))
