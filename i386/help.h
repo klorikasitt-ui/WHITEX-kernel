@@ -1,0 +1,35 @@
+void help() {
+    print("help ");
+    print("logo ");
+    print("cls ");
+    print("uname ");
+    print("reboot ");
+    print("shutdown ");
+    print("ls ");
+    print("mkdir ");
+    print("cd ");
+    print("pwd ");
+    print("hexdump ");
+    print("initfs ");
+    print("cpuid ");
+    print("notepad ");
+    print("kiskrnl ");
+    print("time ");
+    print("internet ");
+    print("sddshell ");
+    print("ram ");
+    print("htop ");
+    print("song ");
+    print("vm ");
+    print("echo ");
+    print("ntask ");
+    print("ps ");
+    print("top ");
+    print("kill ");
+    print("msgsend ");
+    print("msgrecv ");
+    print("pkg ");
+    print("calc ");
+    print("telemetry ");
+    print("lcreset");
+}
