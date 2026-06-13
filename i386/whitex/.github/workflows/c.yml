@@ -1,0 +1,24 @@
+name: WhiteX Kernel
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: RepoDownload
+        uses: actions/checkout@v4
+
+      - name: ToolsDownload
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-i386 nasm clang
+
+      - name: Test
+        run: |
+        bash test.sh
