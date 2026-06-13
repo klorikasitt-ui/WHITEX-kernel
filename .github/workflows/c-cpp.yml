@@ -1,4 +1,4 @@
-
+name: WhiteX Kernel CI
 
 on:
   push:
@@ -19,10 +19,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qemu-system-i386 nasm clang
 
-            - name: Test scriptine yetki ver ve calistir
+      - name: Test scriptini calistir
         env:
           TERM: xterm
         run: |
           cd i386/whitex
           bash test.sh
-
