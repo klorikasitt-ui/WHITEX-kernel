@@ -14,18 +14,6 @@
 
 #include "io.h"
 #include "idt.h"
-idt_entry_t idt[256] __attribute__((aligned(8)));
-idt_ptr_t   idt_ptr;
-
-void init_idt() {
-    idt_ptr.limit = (sizeof(idt_entry_t) * 256) - 1;
-    idt_ptr.base  = (uint32_t)&idt;
-
-    for (int i = 0; i < 256; i++) {
-        idt_set_gate(i, (uint32_t)default_handler, 0x08, 0x8E);
-    }
-    __asm__ __volatile__("lidt %0" : : "m"(idt_ptr));
-}
 #include "strcmp.h"
 #include "vga.h"
 #include "keyboard.h"
@@ -49,7 +37,6 @@ void init_idt() {
 #include "clk.h"
 #include "fssdd.h"
 #include "melodi.h"
-//idt
 #include "gdt.h"
 #include "syscall.h"
 #include "vm.h"
@@ -64,26 +51,92 @@ void init_idt() {
 #include "cpucritical.h"
 #include "htop.h"
 #include "tasks.h"
+
+extern void asm_switch_context(uint32_t* old_esp, uint32_t* new_esp);
+extern void asm_syscall_entry(void);
+extern uint32_t asm_read_cr0(void);
+extern void asm_write_cr0(uint32_t val);
+extern uint32_t asm_read_cr2(void);
+extern void asm_write_cr2(uint32_t val);
+extern uint32_t asm_read_cr3(void);
+extern void asm_write_cr3(uint32_t val);
+extern uint32_t asm_read_cr4(void);
+extern void asm_write_cr4(uint32_t val);
+extern void asm_invalidate_page(uint32_t addr);
+extern void asm_fast_memcpy(void* dest, const void* src, uint32_t count);
+extern void asm_fast_memset(void* dest, uint32_t val, uint32_t count);
+extern void asm_save_fpu_state(void* buf);
+extern void asm_restore_fpu_state(void* buf);
+extern uint32_t asm_get_stack_pointer(void);
+extern void asm_set_stack_pointer(uint32_t esp);
+extern void asm_enter_usermode(uint32_t entry, uint32_t esp);
+extern uint32_t asm_atomic_exchange(volatile uint32_t* addr, uint32_t val);
+
+idt_entry_t idt[256] __attribute__((aligned(8)));
+idt_ptr_t   idt_ptr;
+
+void init_idt() {
+    idt_ptr.limit = (sizeof(idt_entry_t) * 256) - 1;
+    idt_ptr.base  = (uint32_t)&idt;
+
+    for (int i = 0; i < 256; i++) {
+        idt_set_gate(i, (uint32_t)default_handler, 0x08, 0x8E);
+    }
+    __asm__ __volatile__("lidt %0" : : "m"(idt_ptr));
+}
+
+#pragma pack(push, 1)
+typedef struct {
+    uint32_t ds;
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+    uint32_t int_no;
+    uint32_t err_code;
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t eflags;
+    uint32_t useresp;
+    uint32_t ss;
+} registers_t;
+#pragma pack(pop)
+
+typedef void (*isr_t)(registers_t*);
+isr_t interrupt_handlers[256];
+
+void register_interrupt_handler(uint8_t n, isr_t handler) {
+    interrupt_handlers[n] = handler;
+}
+
+void isr_handler(registers_t *r) {
+    if (interrupt_handlers[r->int_no] != 0) {
+        isr_t handler = interrupt_handlers[r->int_no];
+        handler(r);
+    }
+
+    if (r->int_no >= 32 && r->int_no <= 47) {
+        if (r->int_no >= 40) {
+            outb(0xA0, 0x20);
+        }
+        outb(0x20, 0x20);
+    }
+}
+
 extern void isr_stub();
 uint64_t tick_counter = 0;
-#define THIRTY_SECONDS_TICKS 3000 // Eğer döngün 10ms'de bir dönüyorsa 30s = 3000 tick
 
+#define THIRTY_SECONDS_TICKS 3000
 #define I386_CORE_MAGIC 0xC0DEBABE
 #define I386_STACK_GUARD 0xDEADBEEF
 #define I386_MAX_BUFFER 256
 #define I386_CMD_MAX 64
 #define I386_ARG_MAX 190
-/*
-void init_keyboard() {
-    outb(0x21, 0xFD);
 
-    idt_set_gate(0x21, (uint32_t)(uintptr_t)keyboard_irq_handler, 0x08, 0x8E);
-    
-
-    __asm__ __volatile__("sti");
-}
-
-*/
 #pragma pack(push, 1)
 typedef struct {
     uint32_t eax;
@@ -118,14 +171,9 @@ typedef struct {
 } i386_system_environment_t;
 
 static i386_system_environment_t global_env;
-//static VMState kernel_vm;
-//static uint8_t vm_ram[0x10000];
 
 static void safe_memzero_32(void *dest, size_t count) {
-    volatile uint8_t *ptr = (volatile uint8_t *)dest;
-    while (count--) {
-        *ptr++ = 0;
-    }
+    asm_fast_memset(dest, 0, count);
 }
 
 static void panic_handler_i386(const char *error_code) {
@@ -142,7 +190,6 @@ static void panic_handler_i386(const char *error_code) {
         __asm__ volatile("hlt");
     }
 }
-
 
 static void verify_environment_integrity_i386(void) {
     if (global_env.memory_guard != I386_STACK_GUARD) {
@@ -225,7 +272,6 @@ static void sanitize_string_i386(char *str, size_t max_len) {
     }
 }
 
-
 static void execute_command_vector_i386(const char *cmd_name, char *args) {
     if (!cmd_name || cmd_name[0] == '\0') return;
 
@@ -281,6 +327,9 @@ static void parse_input_buffer_i386(char *raw_buffer) {
 }
 
 void Kernel(void) {
+    
+
+    
     i386_env_bootstrap();
     init();
     init_gdt();
@@ -292,7 +341,6 @@ void Kernel(void) {
     melodi();
     cpuid();
     cls(); 
-   // init_keyboard();
     login();
     scheduler_initialize();
     new_task();
@@ -302,21 +350,17 @@ void Kernel(void) {
     print(" Welcome to WhiteX 0.0.5\n");
     print("Type 'help' for available system routines.\n");
     
-
-  
     while(global_env.system_state == 1) {
-tick_counter++;
+        tick_counter++;
         if (tick_counter >= THIRTY_SECONDS_TICKS) {
             sys_oom_monitor_check();
             tick_counter = 0;    
-        verify_environment_integrity_i386();
+            verify_environment_integrity_i386();
         }
         safe_memzero_32(io_buffer, I386_MAX_BUFFER);
         
         print("\nwhitex~$ ");
-        
-        
-        
+
         scan(io_buffer);
 
         sanitize_string_i386(io_buffer, I386_MAX_BUFFER);
@@ -349,5 +393,3 @@ void execute_syscall(VMState *vm, uint64_t syscall_id) {
             break;
     }
 }
-
-

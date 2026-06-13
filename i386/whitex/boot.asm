@@ -1,11 +1,9 @@
-
 section .multiboot
 align 4
-    dd 0x1BADB002             ; Magic Number
-    dd 0x01                   ; Flags (4KB)
-    dd -(0x1BADB002 + 0x01)   ; Checksum
+    dd 0x1BADB002
+    dd 0x01
+    dd -(0x1BADB002 + 0x01)
 
-; --- Kod Başlangıcı ---
 section .text
 global _start
 extern Kernel                 
@@ -13,21 +11,19 @@ extern Kernel
 _start:
     cli
     mov esp, stack_top
-
     
-    ; EAX = 0x2BADB002 (Magic)
+    push ebx
+    push eax
 
-    
     call Kernel
 
-   
 .halt:
+    cli
     hlt
     jmp .halt
 
-; --- Stack Alanı ---
 section .bss
 align 16
 stack_bottom:
-    resb 16384                ; 16 KB 
+    resb 16384
 stack_top:

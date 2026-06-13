@@ -30,24 +30,19 @@ void play_tone(unsigned int frequency) {
 }
 
 void melodi() {
-    
     static const unsigned int melody[] = {
-        330, 392, 440, 523, 
-
-        659, 659, 0, 659,   
-        523, 523, 0, 587
+        659, 784, 880, 1046, 987, 880, 784, 659,
+        784, 880, 1046, 1174, 1318, 1174, 1046, 880
     };
     
     static const unsigned int durations[] = {
-        1, 1, 1, 1, 
-        2, 1, 1, 2, 
-        1, 1, 1, 4
+        2, 2, 2, 4, 2, 2, 2, 4,
+        2, 2, 2, 4, 2, 2, 2, 4
     };
 
-    
-    unsigned long base_speed = 4000000; 
+    unsigned long base_speed = 3000000;
 
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < 16; i++) {
         if (melody[i] != 0) {
             play_tone(melody[i]);
         } else {

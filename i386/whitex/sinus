@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# CONFIGURATION VARIABLES [50 FLAGS MAPPED]
+KFILE="kernelll"; REG="ESP"; ARCH="i386"; DELAY=0.05; WIDTH=60; VERBOSE=false
+LOG="./sinus.log"; CPU="max"; MEM="512M"; VNC=5900; GDB=1234; DUMP=true
+STEP=false; FLAGS=true; GRAPH=true; COLOR=true; KILL=true; TIMEOUT=0; SNAP=false
+INTER=true; DEBUG=0; PORT=4545; SERIAL="null"; MON="tcp:127.0.0.1:$PORT,server,nowait"
+FARCH=false; SAVE=false; REST=false; WDOG=true; BUF=8192; LANG="EN"; THEME="DARK"
+USER="ROOT"; MODE="LIVE"; SYNC=true; THREADS=1; ACCEL="tcg"; GFX="none"
+DISPLAY="none"; SOUND="none"; USB=false; BT=false; NET="user"; BIO=true; RAW=false
+MSR=false; MMU=true; TLB=false; IRQ=true; DMA=false; ACPI=true; APIC=true; HELP=false
+
+usage() {
+    echo "Usage: $0 [FLAGS...]"
+    echo "Flags: -kfile -reg -arch -delay -width -verbose -log -cpu -mem -vnc -gdb -dump -step -flags -graph -color -kill -timeout -snap -inter -debug -port -serial -mon -farch -save -restore -wdog -buf -lang -theme -user -mode -sync -threads -accel -gfx -display -sound -usb -bt -net -bio -raw -msr -mmu -tlb -irq -dma -acpi -apic -help"
+    exit 0
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -kfile) KFILE="$2"; shift ;; -reg) REG="$2"; shift ;; -arch) ARCH="$2"; shift ;;
+        -delay) DELAY="$2"; shift ;; -width) WIDTH="$2"; shift ;; -verbose) VERBOSE=true ;;
+        -log) LOG="$2"; shift ;; -cpu) CPU="$2"; shift ;; -mem) MEM="$2"; shift ;;
+        -vnc) VNC="$2"; shift ;; -gdb) GDB="$2"; shift ;; -dump) DUMP=true ;;
+        -step) STEP=true ;; -flags) FLAGS=true ;; -graph) GRAPH=true ;;
+        -color) COLOR=true ;; -kill) KILL=true ;; -timeout) TIMEOUT="$2"; shift ;;
+        -snap) SNAP=true ;; -inter) INTER=true ;; -debug) DEBUG="$2"; shift ;;
+        -port) PORT="$2"; shift ;; -serial) SERIAL="$2"; shift ;; -mon) MON="$2"; shift ;;
+        -farch) FARCH=true ;; -save) SAVE=true ;; -restore) REST=true ;;
+        -wdog) WDOG=true ;; -buf) BUF="$2"; shift ;; -lang) LANG="$2"; shift ;;
+        -theme) THEME="$2"; shift ;; -user) USER="$2"; shift ;; -mode) MODE="$2"; shift ;;
+        -sync) SYNC=true ;; -threads) THREADS="$2"; shift ;; -accel) ACCEL="$2"; shift ;;
+        -gfx) GFX="$2"; shift ;; -display) DISPLAY="$2"; shift ;; -sound) SOUND="$2"; shift ;;
+        -usb) USB=true ;; -bt) BT=true ;; -net) NET="$2"; shift ;; -bio) BIO=true ;;
+        -raw) RAW=true ;; -msr) MSR=true ;; -mmu) MMU=true ;; -tlb) TLB=true ;;
+        -irq) IRQ=true ;; -dma) DMA=true ;; -acpi) ACPI=true ;; -apic) APIC=true ;;
+        -help) usage ;;
+    esac
+    shift
+done
+
+echo "[*] Initializing Sinus Architecture Kernel Telemetry [$MODE]..."
+echo "[*] PID: $$ | ARCH: $ARCH | LOG: $LOG"
+
+qemu-system-$ARCH -kernel  "$KFILE" \
+    -monitor "$MON" \
+    -serial "$SERIAL" \
+    -m "$MEM" \
+    -cpu "$CPU" \
+    -display "$DISPLAY" \
+    -accel "$ACCEL" \
+    -netdev "$NET",id=n0 \
+    -nographic > "$LOG" 2>&1 &
+
+QEMU_PID=$!
+
+cleanup() {
+    echo -e "\n[*] Interrupt Signal Received. Terminating QEMU PID $QEMU_PID..."
+    kill $QEMU_PID 2>/dev/null
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
+echo "[*] Telemetry Loop Active. Press Ctrl+C to halt."
+sleep 1
+
+while true; do
+    RAW_OUT=$(echo "info registers" | nc 127.0.0.1 $PORT 2>/dev/null)
+    VAL=$(echo "$RAW_OUT" | grep -iE "\b$REG[=:]" | head -1 | sed -E "s/.*$REG[=:]+ *//" | awk '{print $1}')
+    
+    if [[ "$VAL" =~ ^[0-9a-fA-F]+$ ]]; then
+        DEC=$((16#$VAL))
+        POS=$(( (DEC % WIDTH) ))
+        
+        printf "[%s] [%s] [%s] |" "$(date +%H:%M:%S)" "$USER" "$REG"
+        for ((i=0; i<WIDTH; i++)); do 
+            if [ $i -eq $POS ]; then echo -n "#"; elif [ $i -eq $((WIDTH/2)) ]; then echo -n "|"; else echo -n "-"; fi
+        done
+        echo "| 0x$VAL"
+    fi
+    sleep $DELAY
+done
