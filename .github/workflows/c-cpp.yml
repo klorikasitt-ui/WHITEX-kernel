@@ -1,0 +1,24 @@
+Name: WhiteX Kernel 
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Repoyu yukle
+        uses: actions/checkout@v4
+
+      - name: Gerekli aracları yukle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-i386 nasm clang
+
+      - name: Test scriptine yetki ver ve calistir
+        run: |
+          bash i386/whitex/test.sh
