@@ -45,7 +45,7 @@ typedef struct {
 
 static storage_device_t primary_dev = {DEV_NONE, 0, 0};
 
-
+// Hata kontrollü ATA Okuma
 int ata_read_sectors(uint64_t lba, uint32_t count, void* buffer) {
     uint16_t* buf = (uint16_t*)buffer;
     for(uint32_t i = 0; i < count; i++) {
@@ -68,7 +68,7 @@ int ata_read_sectors(uint64_t lba, uint32_t count, void* buffer) {
     return 0;
 }
 
-
+// Hata kontrollü ATA Yazma
 int ata_write_sectors(uint64_t lba, uint32_t count, void* buffer) {
     uint16_t* buf = (uint16_t*)buffer;
     for(uint32_t i = 0; i < count; i++) {

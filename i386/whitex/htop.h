@@ -11,27 +11,10 @@ extern void cls(void);
 extern void print(const char* str);
 extern void scan(char* buffer);
 extern void putchar(char c);
-static inline void vid() {
-    uint64_t target = rdmsr(0x1A2);
-    uint32_t tcc_offset = (target >> 24) & 0xFF;
-    
-   
-    uint64_t perf_status = rdmsr(0x198);
-    uint32_t current_vid = (perf_status >> 0) & 0x3F;
-
-    print("Thermal Headroom (Offset): "); 
-    print_int(tcc_offset); 
-    print(" C\n");
-    
-    print("Voltage ID (VID): "); 
-    print_int(current_vid); 
-    print("\n");
-
-}
-
 
 static inline void htop(void) {
     char kbd_buffer[256];
+    
     cls();
     cpuid();
     
@@ -58,15 +41,10 @@ static inline void htop(void) {
     print("Zone DMA Free:");
     ram_print_number(atomic_load(&g_sys_ctrl.zones[ZONE_DMA].free_pages));
     print("\n");
- 
-    vid();
 
     print("Active Tasks:");
     ram_print_number(g_system_scheduler.active_process_count);
     print("\n");
- 
-    print_watt();
-    hexdump();
 
     for (uint32_t i = 0; i < g_system_scheduler.active_process_count; i++) {
         process_control_block_t* pcb = &g_system_scheduler.process_table[i];

@@ -24,6 +24,7 @@ void hexdump() {
     unsigned int _eax, _ebx, _esp;
     char hex_buf[11];
 
+    // Önce değerleri güvenli bir şekilde al
     asm volatile (
         "movl %%eax, %0\n\t"
         "movl %%ebx, %1\n\t"
@@ -32,6 +33,8 @@ void hexdump() {
         : 
         :
     );
+
+    print("\n--- HEXDUMP ---\n");
 
     
     to_hex(_eax, hex_buf);
@@ -44,6 +47,6 @@ void hexdump() {
 
     to_hex(_esp, hex_buf);
     print("ESP: "); print(hex_buf);
-    print("\n");
+    print("\n--------------------\n");
 }
 
