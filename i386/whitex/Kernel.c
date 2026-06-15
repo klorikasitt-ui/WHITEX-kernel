@@ -23,6 +23,7 @@
 #include "uname.h"
 #include "reboot.h"
 #include "echo.h"
+#include "sdd.h"
 #include "fs.h"
 #include "shutdown.h"
 #include "hexdump.h"
@@ -33,9 +34,7 @@
 #include "internet.h"
 #include "fault.h"
 #include "malloc.h"
-#include "sdd.h"
 #include "clk.h"
-#include "fssdd.h"
 #include "melodi.h"
 #include "gdt.h"
 #include "syscall.h"
@@ -241,7 +240,6 @@ static const i386_dispatch_entry_t kernel_dispatch_table[] = {
     {"kiskrnl", ant, 0, 0},
     {"time", time, 0, 0},
     {"internet", internetmain, 0, 0},
-    {"sddshell", shellfs, 0, 0},
     {"ram", ram, 0, 0},
     {"htop", htop, 0, 0},
     {"song", melodi, 0, 0},

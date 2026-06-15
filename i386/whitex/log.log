@@ -1,0 +1,3 @@
+qemu-system-i386: -m -kfile: Parameter 'size' expects a non-negative number below 2^64
+Optional suffix k, M, G, T, P or E means kilo-, mega-, giga-, tera-, peta-
+and exabytes, respectively.

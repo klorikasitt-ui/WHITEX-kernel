@@ -99,3 +99,45 @@ void pwd() {
     print(storage[current_dir].name);
     print("\n");
 }
+void touch() {
+    char name[NAME_LEN];
+    print("File Name: ");
+    scan(name);
+    for (int i = 0; i < MAX_NODES; i++) {
+        if (!storage[i].is_used) {
+            storage[i].is_used = 1;
+            storage[i].type = FILE_NODE;
+            storage[i].parent_idx = current_dir;
+            fs_strcpy(storage[i].name, name);
+            print("File created.\n");
+            return;
+        }
+    }
+    print("FS Full!\n");
+}
+
+void rm() {
+    char name[NAME_LEN];
+    print("Remove: ");
+    scan(name);
+    for (int i = 0; i < MAX_NODES; i++) {
+        if (storage[i].is_used && strcmp(storage[i].name, name) == 0 && storage[i].parent_idx == current_dir) {
+            if (i == 0) {
+                print("Cannot remove root!\n");
+                return;
+            }
+            storage[i].is_used = 0;
+            print("Deleted.\n");
+            return;
+        }
+    }
+    print("Not found.\n");
+}
+
+void Sdd_Sync() {
+    for (int i = 0; i < (sizeof(storage) / 512) + 1; i++) {
+        write_block(100 + i, (uint8_t*)storage + (i * 512));
+    }
+    print("FS Synced to Disk.\n");
+}
+

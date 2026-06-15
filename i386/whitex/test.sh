@@ -50,6 +50,9 @@ EMULATION_STATUS="PENDING"
 PANIC_FLAG="FALSE"
 OOM_FLAG="FALSE"
 EMULATOR_PID=""
+TOTAL_LINE=$(wc -l *.c *.h *.asm *.ld | tail -n 1 | awk '{print $1}')
+
+
 
 terminate_pipeline() {
     exit_code=$1
@@ -365,14 +368,16 @@ generate_compliance_report() {
 }
 EOF
     echo -e "${COLOR_BLUE}${COLOR_BOLD}========================================================================================${COLOR_RESET}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Total Execution Duration" "${duration_diff} seconds"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Assembly Translation Layer" "${ASSEMBLY_STATUS}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s / %s Executed" "C-Module Translation Layer" "${COMPILED_MODULES}" "${TOTAL_MODULES}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Binary Unification Layer" "${LINKAGE_STATUS}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Hypervisor Execution Layer" "${EMULATION_STATUS}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Telemetry Panic Signature" "${PANIC_FLAG}"
-    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %s\n" "Telemetry OOM Signature" "${OOM_FLAG}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Total Execution Duration" "${duration_diff} seconds"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Assembly Translation Layer" "${ASSEMBLY_STATUS}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "C-Module Translation Layer" "${COMPILED_MODULES} / ${TOTAL_MODULES} Executed"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Binary Unification Layer" "${LINKAGE_STATUS}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Hypervisor Execution Layer" "${EMULATION_STATUS}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Telemetry Panic Signature" "${PANIC_FLAG}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Telemetry OOM Signature" "${OOM_FLAG}"
+    printf "${COLOR_BOLD}%-35s${COLOR_RESET} : %-20s\n" "Total Line" "${TOTAL_LINE}"
     echo -e "${COLOR_BLUE}${COLOR_BOLD}========================================================================================${COLOR_RESET}"
+
     if [ "${final_status}" = "PASS" ]; then
         echo -e "${COLOR_GREEN}${COLOR_BOLD}>>> PIPELINE COMPLIANCE VERIFIED. DEPLOYMENT AUTHORIZED. <<<${COLOR_RESET}"
         terminate_pipeline 0
