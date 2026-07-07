@@ -27,17 +27,18 @@ void touch() {
     }
     print("FS Full!\n");
 }
-
 void rm() {
     char name[NAME_LEN];
     print("Remove: ");
     scan(name);
-    for (int i = 0; i < MAX_NODES; i++) {
+
+       for (int i = 0; i < MAX_NODES; i++) {
         if (storage[i].is_used && strcmp(storage[i].name, name) == 0 && storage[i].parent_idx == current_dir) {
             if (i == 0) {
-                print("Cannot remove root!\n");
+               
                 return;
             }
+
             storage[i].is_used = 0;
             print("Deleted.\n");
             return;
@@ -55,7 +56,6 @@ void Sdd_Sync() {
 void shellfs() {
     char cmd[16];
     while (1) {
-        print("white$\n");
         print(storage[current_dir].name);
         print("> ");
         scan(cmd);

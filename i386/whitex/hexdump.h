@@ -23,8 +23,6 @@ void to_hex(unsigned int n, char* buf) {
 void hexdump() {
     unsigned int _eax, _ebx, _esp;
     char hex_buf[11];
-
-    // Önce değerleri güvenli bir şekilde al
     asm volatile (
         "movl %%eax, %0\n\t"
         "movl %%ebx, %1\n\t"

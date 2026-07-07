@@ -4,7 +4,7 @@ typedef struct registers registers_t;
 typedef unsigned char uint8_t;
 typedef struct registers registers_t;
 typedef void (*isr_t)(registers_t*);
-
+void sys_panic(const char *error_code);
 #define PAGE_SIZE 4096
 #define PAGE_ENTRIES 1024
 #define DIRECTORY_ENTRIES 1024
@@ -63,7 +63,7 @@ extern void asm_write_cr0(uint32_t cr0);
 extern uint32_t asm_read_cr0(void);
 extern uint32_t asm_read_cr2(void);
 extern void asm_invalidate_page(uint32_t addr);
-extern void panic_handler_i386(const char* msg);
+extern void sys_panic(const char* msg);
 
 static uint32_t physical_memory_bitmap[BITMAP_SIZE];
 static uint32_t total_allocated_frames = 0;
@@ -149,7 +149,7 @@ static void allocate_frame(page_table_entry_t* page, int is_kernel, int is_writa
     }
     uint32_t frame_addr = find_first_free_frame();
     if (frame_addr == 0xFFFFFFFF) {
-        panic_handler_i386("SYS_ERR_OUT_OF_PHYSICAL_MEMORY");
+        sys_panic("SYS_ERR_OUT_OF_PHYSICAL_MEMORY");
     }
     bitmap_set_bit(frame_addr);
     page->present = 1;
@@ -181,7 +181,7 @@ page_table_entry_t* get_page_entry(uint32_t address, int make, page_directory_t*
         uint32_t physical_addr;
         dir->tables[table_idx] = (page_table_t*)find_first_free_frame();
         if (dir->tables[table_idx] == (page_table_t*)0xFFFFFFFF) {
-            panic_handler_i386("SYS_ERR_PAGE_TABLE_ALLOCATION_FAILED");
+            sys_panic("SYS_ERR_PAGE_TABLE_ALLOCATION_FAILED");
         }
         physical_addr = (uint32_t)dir->tables[table_idx];
         bitmap_set_bit(physical_addr);
@@ -195,7 +195,7 @@ page_table_entry_t* get_page_entry(uint32_t address, int make, page_directory_t*
 void map_virtual_to_physical(uint32_t virtual_addr, uint32_t physical_addr, int is_kernel, int is_writable, page_directory_t* dir) {
     page_table_entry_t* page = get_page_entry(virtual_addr, 1, dir);
     if (!page) {
-        panic_handler_i386("SYS_ERR_MAP_VIRTUAL_FAILED");
+        sys_panic("SYS_ERR_MAP_VIRTUAL_FAILED");
     }
     page->present = 1;
     page->rw = is_writable ? 1 : 0;
@@ -238,14 +238,14 @@ void page_fault_handler(interrupt_registers_t* regs) {
     int id = regs->err_code & 0x10;
 
     if (present || reserved || id) {
-        panic_handler_i386("SYS_ERR_UNRECOVERABLE_PAGE_FAULT");
+       sys_panic("SYS_ERR_UNRECOVERABLE_PAGE_FAULT");
     }
 
     page_table_entry_t* page = get_page_entry(faulting_address, 1, current_page_directory);
     if (!page->present) {
         allocate_frame(page, us ? 0 : 1, rw ? 1 : 0);
     } else {
-        panic_handler_i386("SYS_ERR_PROTECTION_FAULT");
+        sys_panic("SYS_ERR_PROTECTION_FAULT");
     }
 }
 
@@ -351,7 +351,7 @@ void initialize_paging_system(uint32_t total_memory_kb) {
     
     kernel_page_directory = (page_directory_t*)find_first_free_frame();
     if (kernel_page_directory == (page_directory_t*)0xFFFFFFFF) {
-        panic_handler_i386("SYS_ERR_KERNEL_DIR_ALLOC_FAILED");
+        sys_panic("SYS_ERR_KERNEL_DIR_ALLOC_FAILED");
     }
     bitmap_set_bit((uint32_t)kernel_page_directory);
     memzero_custom(kernel_page_directory, sizeof(page_directory_t));

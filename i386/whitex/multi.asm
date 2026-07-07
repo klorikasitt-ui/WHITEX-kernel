@@ -260,7 +260,8 @@ asm_atomic_exchange:
     mov ebp, esp
     mov edx, [ebp + 8]
     mov eax, [ebp + 12]
-    lock xchg [edx], eax
+    xchg [edx], eax
     pop ebp
     ret
+
 

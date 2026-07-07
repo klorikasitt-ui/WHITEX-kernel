@@ -13,10 +13,7 @@
  */
 void help() {
     print("\n--- WHITEX  ---\n");
-    print("ls, mkdir, cd, pwd, initfs, hexdump, notepad\n");
-    print("uname, cpuid, ram, htop, time, logo, cls\n");
-    print("reboot, shutdown, help, echo\n");
-    print("kiskrnl, internet, sddshell, song, vm\n");
+    print("uname, reboot, shutdown, panic, ls, mkdir, cd, pwd, initfs, sddshell, hexdump, cpuid, ram, htop, top, telemetry, ntask, ps, kill, internet, ping, msgsend, msgrecv, sudo, kiskrnl, notepad, nano, song, echo, pkg, calc, lcreset, time, fortune, logo, cls\n");
     print("---------------------------\n");
 }
 

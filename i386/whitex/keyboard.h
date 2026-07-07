@@ -1,49 +1,57 @@
+#include <stdint.h>
 
 extern void terminal_backspace();
 extern void putchar(char c);
+extern uint8_t inb(uint16_t port);
 
 static int shift_pressed = 0;
 static int caps_lock = 0;
 static int is_extended = 0;
 
-static unsigned char kbd_us[128] = {
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,
-    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' ',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static unsigned char kbd_us_shift[128] = {
-    0,  27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
-    '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
-    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0,
-    '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', 0, ' ',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 static char input_buffer[256];
 static int buffer_idx = 0;
 static int input_complete = 0;
 
+static unsigned char kbd_us[128] = {
+    0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0,
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 10,
+    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,
+    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' ',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static unsigned char kbd_us_shift[128] = {
+    0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0,
+    '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 10,
+    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0,
+    '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', 0, ' ',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
 void keyboard_handler() {
     uint8_t scancode = inb(0x60);
 
-    if (scancode == 0xE0) { 
-        is_extended = 1; 
-        return; 
+    if (scancode == 0xE0) {
+        is_extended = 1;
+        return;
     }
 
     if (scancode & 0x80) {
         uint8_t released = scancode & 0x7F;
-        if (released == 0x2A || released == 0x36) shift_pressed = 0;
+        if (released == 0x2A || released == 0x36) {
+            shift_pressed = 0;
+        }
         is_extended = 0;
         return;
     }
 
-    if (scancode == 0x2A || scancode == 0x36) { 
-        shift_pressed = 1; 
-        return; 
+    if (scancode == 0x2A || scancode == 0x36) {
+        shift_pressed = 1;
+        return;
     }
 
     if (scancode == 0x3A) {
@@ -51,9 +59,21 @@ void keyboard_handler() {
         return;
     }
 
-    if (is_extended) { 
-        is_extended = 0; 
-        return; 
+    if (is_extended) {
+        switch (scancode) {
+            case 0x48:
+                break;
+            case 0x50:
+                break;
+            case 0x4B:
+                break;
+            case 0x4D:
+                break;
+            default:
+                break;
+        }
+        is_extended = 0;
+        return;
     }
 
     if (scancode == 0x0E) {
@@ -68,7 +88,7 @@ void keyboard_handler() {
     if (scancode == 0x1C) {
         input_buffer[buffer_idx] = '\0';
         input_complete = 1;
-        putchar('\n'); 
+        putchar('\n');
         return;
     }
 
