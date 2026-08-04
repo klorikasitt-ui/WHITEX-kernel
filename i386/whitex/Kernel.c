@@ -432,7 +432,8 @@ static const dispatch_entry_t g_dispatch_table[] = {
     {"sudo", 0, cmd_sudo_handler, 1},
     {"nano", 0, execute_nano_terminal_simulator, 0},
     {"ping", ping, 0, 0},
-    {"fortune", cmd_random_fortune, 0, 0}
+    {"fortune", cmd_random_fortune, 0, 0},
+    {"power", batt, 0, 0}
 };
 
 

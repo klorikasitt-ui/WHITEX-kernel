@@ -40,4 +40,5 @@
 #include "nano.h"
 #include "paging.h"
 #include "ping.h"
-
+#include "power.h"
+#include "mmio.h"

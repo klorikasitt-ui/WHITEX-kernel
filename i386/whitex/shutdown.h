@@ -11,18 +11,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+#include <stdint.h>
+
 void shutdown() {
-    __asm__ __volatile__ (
-        "mov $0x5301, %%ax\n\t"
-        "xor %%bx, %%bx\n\t"
-        "int $0x15\n\t"   // Bağlantı kur
-        "mov $0x530e, %%ax\n\t"
-        "mov $0x0102, %%cx\n\t"
-        "int $0x15\n\t"   
-        "mov $0x5307, %%ax\n\t"
-        "mov $0x0001, %%bx\n\t"
-        "mov $0x0003, %%cx\n\t"
-        "int $0x15"    
-        : : : "ax", "bx", "cx"
-    );
+    outb(0x604, 0x2000);
+    outb(0xB004, 0x2000);
+    
+    for(;;) {
+        __asm__ __volatile__ ("cli; hlt");
+    }
 }
+
