@@ -17,12 +17,13 @@ jobs:
       - name: Gerekli aracları yukle
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-i386 nasm clang
+          sudo apt-get install -y bunzip2 nasm clang
 
       - name: Derle
         env:
           TERM: xterm
         run: |
           make clean
-          make 
-          qemu-system-i386 -vnc :1 
+          make
+  
+          
